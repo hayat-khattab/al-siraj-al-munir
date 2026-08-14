@@ -43,6 +43,7 @@ export const config = {
   otpProvider: process.env.OTP_PROVIDER ?? 'console',
   enableOtpReveal: bool('ENABLE_OTP_REVEAL', true),
   otpTtlMinutes: int('OTP_TTL_MINUTES', 10),
+  requireOtp: bool('REQUIRE_OTP', false),
 
   adminFullName: process.env.ADMIN_FULL_NAME ?? 'مدير مسابقة السراج',
   adminWhatsappNumber: process.env.ADMIN_WHATSAPP_NUMBER ?? '+201000000000',

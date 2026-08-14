@@ -15,6 +15,15 @@ export interface AuthResult {
   otpReveal?: string;
 }
 
+export interface OtpChallenge {
+  message: string;
+  channel: string;
+  otpReveal?: string;
+}
+
+export type RegisterOutcome = AuthResult | OtpChallenge;
+export type LoginOutcome = AuthResult | OtpChallenge;
+
 export interface PublicUser {
   id: string;
   fullName: string;
@@ -41,6 +50,13 @@ function generateOtpCode(): string {
   return crypto.randomInt(0, 10 ** OTP_LENGTH).toString().padStart(OTP_LENGTH, '0');
 }
 
+function completeLogin(row: UserRow): AuthResult {
+  getDb().prepare('UPDATE users SET last_login_at = ? WHERE id = ?').run(nowIso(), row.id);
+  audit('USER_LOGIN', row.id);
+  const token = signToken({ sub: row.id, role: row.role });
+  return { token, user: toPublicUser(row) };
+}
+
 function issueOtp(phoneNormalized: string, purpose: 'REGISTER' | 'LOGIN'): { code: string } {
   const code = generateOtpCode();
   const codeHash = bcrypt.hashSync(code, 8);
@@ -61,7 +77,7 @@ function issueOtp(phoneNormalized: string, purpose: 'REGISTER' | 'LOGIN'): { cod
   return { code };
 }
 
-export async function register(fullName: string, rawPhone: string): Promise<{ message: string; otpReveal?: string; channel: string }> {
+export async function register(fullName: string, rawPhone: string): Promise<RegisterOutcome> {
   const parsed = parseFullName(fullName);
   const phoneNormalized = normalizePhone(rawPhone);
 
@@ -101,6 +117,11 @@ export async function register(fullName: string, rawPhone: string): Promise<{ me
 
   audit('USER_REGISTERED', id);
 
+  const row = getDb().prepare('SELECT * FROM users WHERE id = ?').get(id) as UserRow;
+  if (!config.requireOtp) {
+    return completeLogin(row);
+  }
+
   const { code } = issueOtp(phoneNormalized, 'REGISTER');
   const delivery = await getOtpProvider().send(phoneNormalized, code);
 
@@ -111,7 +132,7 @@ export async function register(fullName: string, rawPhone: string): Promise<{ me
   };
 }
 
-export async function requestLogin(rawPhone: string): Promise<{ message: string; otpReveal?: string; channel: string }> {
+export async function requestLogin(rawPhone: string): Promise<LoginOutcome> {
   const phoneNormalized = normalizePhone(rawPhone);
   const user = getDb()
     .prepare('SELECT * FROM users WHERE whatsapp_normalized = ?')
@@ -122,6 +143,10 @@ export async function requestLogin(rawPhone: string): Promise<{ message: string;
   }
   if (user.status !== 'ACTIVE') {
     throw AppError.forbidden('USER_DISABLED', 'تم إيقاف حسابك. يرجى التواصل مع الإدارة.');
+  }
+
+  if (!config.requireOtp) {
+    return completeLogin(user);
   }
 
   const { code } = issueOtp(phoneNormalized, 'LOGIN');

@@ -14,6 +14,12 @@ interface OtpResponse {
   user: import('../api/types').AuthUser;
 }
 
+interface OtpChallenge {
+  message?: string;
+  channel?: string;
+  otpReveal?: string;
+}
+
 export default function AuthScreen() {
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -48,7 +54,7 @@ export default function AuthScreen() {
     return null;
   }
 
-  async function requestOtp(e: FormEvent) {
+  async function submit(e: FormEvent) {
     e.preventDefault();
     setError(null);
     const err = validate();
@@ -58,10 +64,18 @@ export default function AuthScreen() {
     }
     setVerifying(true);
     try {
-      await api.post(mode === 'register' ? '/auth/register' : '/auth/login', {
-        fullName: fullName.trim(),
-        whatsappNumber: phone.trim(),
-      });
+      const res = await api.post<OtpResponse | OtpChallenge>(
+        mode === 'register' ? '/auth/register' : '/auth/login',
+        {
+          fullName: fullName.trim(),
+          whatsappNumber: phone.trim(),
+        },
+      );
+      if (res && 'token' in res && res.token) {
+        login(res.token, (res as OtpResponse).user);
+        navigate('/home', { replace: true });
+        return;
+      }
       setOtpRequested(true);
       setToast(mode === 'register' ? 'تم التسجيل، راسلنا الرقم السري عبر واتساب' : 'أرسلنا رمز الدخول عبر واتساب');
     } catch (ex) {
@@ -126,7 +140,7 @@ export default function AuthScreen() {
       </div>
 
       {!otpRequested ? (
-        <form className="card auth-card" onSubmit={requestOtp}>
+        <form className="card auth-card" onSubmit={submit}>
           {mode === 'register' && (
             <div className="field">
               <label htmlFor="fullName">الاسم الثلاثي</label>
@@ -156,7 +170,7 @@ export default function AuthScreen() {
           </div>
           {error && <div className="error-text">{error}</div>}
           <button className="btn btn-primary btn-block" disabled={verifying}>
-            {verifying ? 'جاري الإرسال…' : mode === 'register' ? 'إنشاء الحساب' : 'إرسال الرمز'}
+            {verifying ? 'جاري الإرسال…' : mode === 'register' ? 'إنشاء الحساب' : 'دخول'}
           </button>
         </form>
       ) : (
