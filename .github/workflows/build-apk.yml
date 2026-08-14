@@ -60,7 +60,9 @@ jobs:
         working-directory: web
 
       - name: Build debug APK
-        run: ./gradlew --no-daemon assembleDebug
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon assembleDebug
         working-directory: web/android
 
       - name: Upload APK
