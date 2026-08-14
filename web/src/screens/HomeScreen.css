@@ -1,0 +1,189 @@
+.rules-card {
+  padding: 18px 20px;
+  margin-bottom: 22px;
+}
+
+.rules-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.rules-icon {
+  color: var(--gold);
+  font-size: 18px;
+}
+
+.rules-head h2 {
+  font-size: 16px;
+  color: var(--gold-soft);
+}
+
+.rules-list {
+  list-style: none;
+  counter-reset: rule;
+  padding: 0;
+  margin: 0;
+}
+
+.rules-list li {
+  counter-increment: rule;
+  position: relative;
+  padding-inline-start: 34px;
+  margin-bottom: 9px;
+  color: var(--cream-dim);
+  font-size: 13.5px;
+  line-height: 1.7;
+}
+
+.rules-list li::before {
+  content: counter(rule);
+  position: absolute;
+  inset-inline-start: 0;
+  top: 2px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid var(--gold);
+  color: var(--gold-soft);
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rules-list b {
+  color: var(--cream);
+}
+
+.grid-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--cream);
+  margin-bottom: 12px;
+}
+
+.days-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+}
+
+.day-card {
+  position: relative;
+  border-radius: 16px;
+  border: 1px solid var(--line-soft);
+  background: var(--card);
+  padding: 12px 6px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  transition: transform 0.15s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  text-align: center;
+}
+
+.day-card:disabled {
+  cursor: default;
+  opacity: 0.62;
+}
+
+.day-num {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--cream);
+}
+
+.day-hijri {
+  font-size: 10px;
+  color: var(--cream-dim);
+  line-height: 1.3;
+}
+
+.day-badge {
+  font-size: 10px;
+  font-weight: 700;
+  margin-top: 4px;
+  padding: 2px 9px;
+  border-radius: 999px;
+}
+
+.day-available {
+  border-color: var(--gold);
+  background: rgba(216, 180, 90, 0.12);
+  box-shadow: 0 0 22px rgba(216, 180, 90, 0.22);
+}
+
+.day-available .day-num {
+  color: var(--gold-soft);
+}
+
+.day-available .day-badge {
+  background: rgba(216, 180, 90, 0.2);
+  color: var(--gold-soft);
+}
+
+.day-answered {
+  border-color: rgba(52, 211, 160, 0.45);
+  background: rgba(52, 211, 160, 0.1);
+}
+
+.day-answered .day-num {
+  color: var(--emerald);
+}
+
+.day-answered .day-badge {
+  background: rgba(52, 211, 160, 0.18);
+  color: var(--emerald);
+}
+
+.day-missed {
+  border-color: rgba(239, 107, 107, 0.4);
+  background: rgba(239, 107, 107, 0.08);
+}
+
+.day-missed .day-num {
+  color: var(--red);
+}
+
+.day-missed .day-badge {
+  background: rgba(239, 107, 107, 0.16);
+  color: var(--red);
+}
+
+.day-future .day-num {
+  color: var(--cream-dim);
+}
+
+.grid-legend {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 18px;
+  font-size: 11.5px;
+  color: var(--cream-dim);
+}
+
+.legend-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-inline-start: 4px;
+}
+
+.dot-available {
+  background: var(--gold);
+}
+
+.dot-answered {
+  background: var(--emerald);
+}
+
+.dot-missed {
+  background: var(--red);
+}

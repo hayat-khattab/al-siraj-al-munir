@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: al-siraj-al-munir
+    runtime: node
+    rootDir: server
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: node dist/server.js
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4000
+      - key: JWT_SECRET
+        generateValue: true
+      - key: OTP_PROVIDER
+        value: console
+      - key: ENABLE_OTP_REVEAL
+        value: "true"
+      - key: COMPETITION_DAYS
+        value: "30"
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: ADMIN_FULL_NAME
+        value: "منير أحمد محمد"
+      - key: ADMIN_WHATSAPP_NUMBER
+        value: "+201000000000"

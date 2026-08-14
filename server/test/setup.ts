@@ -1,0 +1,9 @@
+process.env.NODE_ENV = 'test';
+process.env.DB_PATH = ':memory:';
+process.env.OTP_PROVIDER = 'mock';
+process.env.ENABLE_OTP_REVEAL = 'true';
+process.env.JWT_SECRET = 'test-secret-key';
+process.env.ANSWER_TIME_MINUTES = '30';
+process.env.COMPETITION_DAYS = '30';
+process.env.COMPETITION_START_DATE = '';
+process.env.LOG_LEVEL = 'error';

@@ -1,0 +1,107 @@
+-- Al-Siraj Al-Munir - database schema
+
+PRAGMA foreign_keys = ON;
+PRAGMA journal_mode = WAL;
+
+CREATE TABLE IF NOT EXISTS users (
+  id TEXT PRIMARY KEY,
+  full_name TEXT NOT NULL,
+  first_name TEXT NOT NULL,
+  middle_name TEXT NOT NULL,
+  last_name TEXT NOT NULL,
+  whatsapp_number TEXT NOT NULL,
+  whatsapp_normalized TEXT NOT NULL,
+  role TEXT NOT NULL DEFAULT 'USER' CHECK (role IN ('USER', 'ADMIN')),
+  status TEXT NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE', 'DISABLED')),
+  created_at TEXT NOT NULL,
+  last_login_at TEXT
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_whatsapp ON users (whatsapp_normalized);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_full_name ON users (full_name);
+
+CREATE TABLE IF NOT EXISTS questions (
+  id TEXT PRIMARY KEY,
+  question_number INTEGER NOT NULL,
+  hijri_day INTEGER NOT NULL,
+  hijri_month TEXT NOT NULL,
+  question_text TEXT NOT NULL,
+  correct_answer TEXT NOT NULL,
+  answer_variants TEXT NOT NULL DEFAULT '[]',
+  available_from TEXT NOT NULL,
+  available_until TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('DRAFT', 'ACTIVE', 'DISABLED')),
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  UNIQUE (question_number, hijri_month)
+);
+
+CREATE INDEX IF NOT EXISTS idx_questions_number ON questions (question_number);
+CREATE INDEX IF NOT EXISTS idx_questions_available_from ON questions (available_from);
+
+CREATE TABLE IF NOT EXISTS question_sessions (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  question_id TEXT NOT NULL,
+  started_at TEXT NOT NULL,
+  expires_at TEXT NOT NULL,
+  ended_at TEXT,
+  status TEXT NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE', 'SUBMITTED', 'EXPIRED')),
+  created_at TEXT NOT NULL,
+  UNIQUE (user_id, question_id),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_sessions_user ON question_sessions (user_id);
+CREATE INDEX IF NOT EXISTS idx_sessions_question ON question_sessions (question_id);
+CREATE INDEX IF NOT EXISTS idx_sessions_status ON question_sessions (status);
+
+CREATE TABLE IF NOT EXISTS answers (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  question_id TEXT NOT NULL,
+  answer_text TEXT NOT NULL,
+  submitted_at TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'SUBMITTED' CHECK (status IN ('SUBMITTED', 'EVALUATED', 'FAILED')),
+  automatic_score INTEGER,
+  automatic_correction TEXT,
+  correction_feedback TEXT,
+  correct_answer TEXT,
+  corrected_at TEXT,
+  UNIQUE (user_id, question_id),
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_answers_user ON answers (user_id);
+CREATE INDEX IF NOT EXISTS idx_answers_question ON answers (question_id);
+CREATE INDEX IF NOT EXISTS idx_answers_submitted ON answers (submitted_at);
+
+CREATE TABLE IF NOT EXISTS otp_codes (
+  id TEXT PRIMARY KEY,
+  phone_normalized TEXT NOT NULL,
+  code_hash TEXT NOT NULL,
+  purpose TEXT NOT NULL DEFAULT 'LOGIN' CHECK (purpose IN ('REGISTER', 'LOGIN')),
+  expires_at TEXT NOT NULL,
+  attempts INTEGER NOT NULL DEFAULT 0,
+  consumed INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_otp_phone ON otp_codes (phone_normalized);
+
+CREATE TABLE IF NOT EXISTS competition_config (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS audit_logs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  event TEXT NOT NULL,
+  user_id TEXT,
+  meta TEXT,
+  created_at TEXT NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_audit_event ON audit_logs (event);

@@ -1,0 +1,212 @@
+[
+  {
+    "questionNumber": 1,
+    "hijriDay": 1,
+    "questionText": "من هو النبي الملقب بخليل الله؟",
+    "correctAnswer": "إبراهيم عليه السلام",
+    "answerVariants": ["إبراهيم", "الخليل إبراهيم", "سيدنا إبراهيم", "نبي الله إبراهيم"]
+  },
+  {
+    "questionNumber": 2,
+    "hijriDay": 2,
+    "questionText": "كم عدد سور القرآن الكريم؟",
+    "correctAnswer": "114 سورة",
+    "answerVariants": ["114", "مائة وأربع عشرة سورة", "114 سورة"]
+  },
+  {
+    "questionNumber": 3,
+    "hijriDay": 3,
+    "questionText": "ما هي السورة التي تسمى قلب القرآن؟",
+    "correctAnswer": "سورة يس",
+    "answerVariants": ["يس", "سورة يس"]
+  },
+  {
+    "questionNumber": 4,
+    "hijriDay": 4,
+    "questionText": "ما هي أركان الإسلام الخمسة، اذكر أولها؟",
+    "correctAnswer": "الشهادتان",
+    "answerVariants": ["الشهادتان", "شهادة أن لا إله إلا الله وأن محمداً رسول الله", "شهادة أن لا إله إلا الله"]
+  },
+  {
+    "questionNumber": 5,
+    "hijriDay": 5,
+    "questionText": "من أول من أسلم من الرجال؟",
+    "correctAnswer": "أبو بكر الصديق",
+    "answerVariants": ["أبو بكر الصديق", "أبو بكر", "سيدنا أبو بكر الصديق"]
+  },
+  {
+    "questionNumber": 6,
+    "hijriDay": 6,
+    "questionText": "ما اسم زوجة النبي محمد صلى الله عليه وسلم الأولى؟",
+    "correctAnswer": "خديجة بنت خويلد",
+    "answerVariants": ["خديجة بنت خويلد", "السيدة خديجة", "أم المؤمنين خديجة"]
+  },
+  {
+    "questionNumber": 7,
+    "hijriDay": 7,
+    "questionText": "كم مرة ذُكر اسم النبي محمد صلى الله عليه وسلم في القرآن الكريم؟",
+    "correctAnswer": "أربع مرات",
+    "answerVariants": ["4", "أربع مرات", "4 مرات"]
+  },
+  {
+    "questionNumber": 8,
+    "hijriDay": 8,
+    "questionText": "ما هي السورة التي تعادل ثلث القرآن؟",
+    "correctAnswer": "سورة الإخلاص",
+    "answerVariants": ["الإخلاص", "قل هو الله أحد", "سورة الإخلاص"]
+  },
+  {
+    "questionNumber": 9,
+    "hijriDay": 9,
+    "questionText": "ما هو الشهر الذي يصوم فيه المسلمون؟",
+    "correctAnswer": "شهر رمضان",
+    "answerVariants": ["رمضان", "شهر رمضان", "رمضان المبارك"]
+  },
+  {
+    "questionNumber": 10,
+    "hijriDay": 10,
+    "questionText": "في أي غزوة كان النبي صلى الله عليه وسلم في يوم بدر؟ اذكرها.",
+    "correctAnswer": "غزوة بدر",
+    "answerVariants": ["بدر", "غزوة بدر", "غزوة بدر الكبرى"]
+  },
+  {
+    "questionNumber": 11,
+    "hijriDay": 11,
+    "questionText": "ما هي أطول سورة في القرآن الكريم؟",
+    "correctAnswer": "سورة البقرة",
+    "answerVariants": ["البقرة", "سورة البقرة"]
+  },
+  {
+    "questionNumber": 12,
+    "hijriDay": 12,
+    "questionText": "من هو الصحابي الملقب بسيف الله المسلول؟",
+    "correctAnswer": "خالد بن الوليد",
+    "answerVariants": ["خالد بن الوليد", "سيف الله خالد بن الوليد"]
+  },
+  {
+    "questionNumber": 13,
+    "hijriDay": 13,
+    "questionText": "ما اسم أول مسجد بني في الإسلام؟",
+    "correctAnswer": "مسجد قباء",
+    "answerVariants": ["قباء", "مسجد قباء"]
+  },
+  {
+    "questionNumber": 14,
+    "hijriDay": 14,
+    "questionText": "كم عدد أركان الإيمان؟",
+    "correctAnswer": "ستة أركان",
+    "answerVariants": ["ستة", "6", "ستة أركان", "6 أركان"]
+  },
+  {
+    "questionNumber": 15,
+    "hijriDay": 15,
+    "questionText": "ما هي السورة التي تعدل أجر قراءتها عشر حسنات لكل حرف، وهي أم القرآن؟",
+    "correctAnswer": "سورة الفاتحة",
+    "answerVariants": ["الفاتحة", "سورة الفاتحة"]
+  },
+  {
+    "questionNumber": 16,
+    "hijriDay": 16,
+    "questionText": "من هو نبي الله الذي ابتلعه الحوت؟",
+    "correctAnswer": "يونس عليه السلام",
+    "answerVariants": ["يونس", "سيدنا يونس", "يونس عليه السلام", "ذو النون"]
+  },
+  {
+    "questionNumber": 17,
+    "hijriDay": 17,
+    "questionText": "ما اسم القبلة الأولى للمسلمين؟",
+    "correctAnswer": "المسجد الأقصى",
+    "answerVariants": ["المسجد الأقصى", "بيت المقدس", "القدس"]
+  },
+  {
+    "questionNumber": 18,
+    "hijriDay": 18,
+    "questionText": "من الصحابي الذي لقبه النبي صلى الله عليه وسلم بترجمان القرآن؟",
+    "correctAnswer": "عبد الله بن عباس",
+    "answerVariants": ["عبد الله بن عباس", "ابن عباس"]
+  },
+  {
+    "questionNumber": 19,
+    "hijriDay": 19,
+    "questionText": "ما هي ليلة القدر، في أي شهر تقع؟",
+    "correctAnswer": "في رمضان",
+    "answerVariants": ["رمضان", "شهر رمضان", "في رمضان", "العشر الأواخر من رمضان"]
+  },
+  {
+    "questionNumber": 20,
+    "hijriDay": 20,
+    "questionText": "ما عدد الآيات في سورة الفاتحة؟",
+    "correctAnswer": "سبع آيات",
+    "answerVariants": ["سبع", "7", "سبع آيات", "7 آيات"]
+  },
+  {
+    "questionNumber": 21,
+    "hijriDay": 21,
+    "questionText": "ما هو الكتاب المقدس الذي أنزل على نبي الله عيسى عليه السلام؟",
+    "correctAnswer": "الإنجيل",
+    "answerVariants": ["الإنجيل"]
+  },
+  {
+    "questionNumber": 22,
+    "hijriDay": 22,
+    "questionText": "من هو الصحابي الذي رافق النبي صلى الله عليه وسلم في الهجرة إلى المدينة؟",
+    "correctAnswer": "أبو بكر الصديق",
+    "answerVariants": ["أبو بكر الصديق", "أبو بكر", "سيدنا أبو بكر"]
+  },
+  {
+    "questionNumber": 23,
+    "hijriDay": 23,
+    "questionText": "ما هي السورة التي بدأت بالحمد لله رب العالمين؟",
+    "correctAnswer": "سورة الفاتحة",
+    "answerVariants": ["الفاتحة", "سورة الفاتحة"]
+  },
+  {
+    "questionNumber": 24,
+    "hijriDay": 24,
+    "questionText": "ما اسم الشهر الذي يسبق رمضان؟",
+    "correctAnswer": "شعبان",
+    "answerVariants": ["شعبان", "شهر شعبان"]
+  },
+  {
+    "questionNumber": 25,
+    "hijriDay": 25,
+    "questionText": "من هو النبي الملقب بكليم الله؟",
+    "correctAnswer": "موسى عليه السلام",
+    "answerVariants": ["موسى", "موسى عليه السلام", "سيدنا موسى"]
+  },
+  {
+    "questionNumber": 26,
+    "hijriDay": 26,
+    "questionText": "كم عدد أبواب الجنة؟",
+    "correctAnswer": "ثمانية أبواب",
+    "answerVariants": ["ثمانية", "8", "ثمانية أبواب", "8 أبواب"]
+  },
+  {
+    "questionNumber": 27,
+    "hijriDay": 27,
+    "questionText": "ما هي السورة التي تسمى سورة النساء الصغرى؟",
+    "correctAnswer": "سورة الطلاق",
+    "answerVariants": ["الطلاق", "سورة الطلاق"]
+  },
+  {
+    "questionNumber": 28,
+    "hijriDay": 28,
+    "questionText": "من أول الخلفاء الراشدين؟",
+    "correctAnswer": "أبو بكر الصديق",
+    "answerVariants": ["أبو بكر الصديق", "أبو بكر"]
+  },
+  {
+    "questionNumber": 29,
+    "hijriDay": 29,
+    "questionText": "ما هو اسم ملك الموت الوارد في النصوص الشرعية؟",
+    "correctAnswer": "عزرائيل",
+    "answerVariants": ["عزرائيل"]
+  },
+  {
+    "questionNumber": 30,
+    "hijriDay": 30,
+    "questionText": "في أي عام كان عام الفتح الأعظم فتح مكة؟",
+    "correctAnswer": "العام الثامن من الهجرة",
+    "answerVariants": ["الثامن من الهجرة", "عام 8 هـ", "8 هـ", "الثامنة هجرية"]
+  }
+]

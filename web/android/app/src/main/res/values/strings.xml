@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">السِّرَاج المُنِير</string>
+    <string name="title_activity_main">السِّرَاج المُنِير</string>
+    <string name="package_name">com.seraj.munir</string>
+    <string name="custom_url_scheme">com.seraj.munir</string>
+</resources>
