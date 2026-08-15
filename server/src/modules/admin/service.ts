@@ -136,7 +136,7 @@ export function deleteQuestion(id: string): void {
 /**
  * Bulk-creates a full competition month. Availability is derived from the
  * competition rule automatically:
- *   question for Hijri day D becomes available on day D+1.
+ *   question for Hijri day D becomes available on day D itself.
  *
  * @param baseDate Gregorian date (YYYY-MM-DD) of Hijri day 1.
  */
@@ -151,7 +151,7 @@ export function bulkCreateQuestions(items: BulkQuestionInput[], baseDate: string
   for (const item of items) {
     const dayOffset = item.hijriDay - 1;
     const questionDay = new Date(base.getTime() + dayOffset * 86_400_000).toISOString();
-    const availableFrom = new Date(new Date(questionDay).getTime() + 86_400_000).toISOString();
+    const availableFrom = questionDay;
     const availableUntil = endOfDayInTz(availableFrom, tz);
 
     createQuestion({
@@ -426,6 +426,68 @@ export function getStatistics(): Statistics {
     availableQuestions,
     correctRate: totalAnswers === 0 ? 0 : Math.round((correctAnswers / totalAnswers) * 100),
   };
+}
+
+export interface UserAnswerAdminRow {
+  questionNumber: number;
+  hijriDay: number;
+  hijriMonth: string;
+  questionText: string;
+  correctAnswer: string;
+  answerId: string | null;
+  answerText: string | null;
+  submittedAt: string | null;
+  startedAt: string | null;
+  expiresAt: string | null;
+  endedAt: string | null;
+  timeTakenSeconds: number | null;
+  score: number | null;
+  correction: 'CORRECT' | 'INCORRECT' | null;
+  sessionStatus: 'ACTIVE' | 'SUBMITTED' | 'EXPIRED' | null;
+}
+
+export function listUserAnswers(userId: string): UserAnswerAdminRow[] {
+  const db = getDb();
+  const user = db.prepare('SELECT id FROM users WHERE id = ?').get(userId);
+  if (!user) throw AppError.notFound('USER_NOT_FOUND', 'المستخدم غير موجود.');
+
+  const rows = db
+    .prepare(
+      `SELECT q.question_number, q.hijri_day, q.hijri_month, q.question_text, q.correct_answer,
+              a.id AS answer_id, a.answer_text, a.submitted_at, a.automatic_score, a.automatic_correction,
+              s.started_at, s.expires_at, s.ended_at, s.status AS session_status
+       FROM questions q
+       LEFT JOIN question_sessions s ON s.question_id = q.id AND s.user_id = ?
+       LEFT JOIN answers a ON a.question_id = q.id AND a.user_id = ?
+       WHERE q.status = 'ACTIVE'
+       ORDER BY q.question_number ASC`,
+    )
+    .all(userId, userId) as Array<Record<string, unknown>>;
+
+  return rows.map((r) => ({
+    questionNumber: Number(r.question_number),
+    hijriDay: Number(r.hijri_day),
+    hijriMonth: String(r.hijri_month),
+    questionText: String(r.question_text),
+    correctAnswer: String(r.correct_answer),
+    answerId: r.answer_id === null ? null : String(r.answer_id),
+    answerText: r.answer_text === null ? null : String(r.answer_text),
+    submittedAt: r.submitted_at === null ? null : String(r.submitted_at),
+    startedAt: r.started_at === null ? null : String(r.started_at),
+    expiresAt: r.expires_at === null ? null : String(r.expires_at),
+    endedAt: r.ended_at === null ? null : String(r.ended_at),
+    timeTakenSeconds:
+      r.started_at === null || r.submitted_at === null
+        ? null
+        : Math.max(0, Math.round((new Date(String(r.submitted_at)).getTime() - new Date(String(r.started_at)).getTime()) / 1000)),
+    score: r.automatic_score === null ? null : Number(r.automatic_score),
+    correction:
+      r.automatic_correction === 'CORRECT' || r.automatic_correction === 'INCORRECT' ? r.automatic_correction : null,
+    sessionStatus:
+      r.session_status === 'ACTIVE' || r.session_status === 'SUBMITTED' || r.session_status === 'EXPIRED'
+        ? r.session_status
+        : null,
+  }));
 }
 
 export { normalizeArabic };

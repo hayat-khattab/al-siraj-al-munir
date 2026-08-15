@@ -27,3 +27,5 @@ services:
         value: "منير أحمد محمد"
       - key: ADMIN_WHATSAPP_NUMBER
         value: "+201000000000"
+      - key: COMPETITION_START_DATE
+        value: "2026-08-15"

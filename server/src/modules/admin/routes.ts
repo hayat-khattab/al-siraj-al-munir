@@ -93,6 +93,10 @@ router.patch('/users/:id/status', (req: Request, res: Response) => {
   res.json({ message: 'تم تحديث حالة المستخدم.' });
 });
 
+router.get('/users/:id/answers', (req: Request, res: Response) => {
+  res.json({ answers: admin.listUserAnswers(param(req, 'id')) });
+});
+
 // ------------------------------------------------------------------
 // Answers
 // ------------------------------------------------------------------

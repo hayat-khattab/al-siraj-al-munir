@@ -133,3 +133,40 @@ describe('Authentication', () => {
     expect(res.body.statistics.totalUsers).toBe(1);
   });
 });
+
+describe('Admin login (root/admin2root)', () => {
+  beforeEach(async () => {
+    resetDb();
+    await initApp();
+  });
+
+  it('logs in with the fixed credentials and grants ADMIN role', async () => {
+    const app = await initApp();
+    const res = await api(app)
+      .post('/api/auth/admin-login')
+      .send({ username: 'root', password: 'admin2root' })
+      .expect(200);
+    expect(res.body.token).toBeTruthy();
+    expect(res.body.user.role).toBe('ADMIN');
+
+    const stats = await api(app)
+      .get('/api/admin/statistics')
+      .set('Authorization', `Bearer ${res.body.token}`)
+      .expect(200);
+    expect(stats.body.statistics).toBeTruthy();
+  });
+
+  it('rejects invalid admin credentials', async () => {
+    const app = await initApp();
+    const res = await api(app)
+      .post('/api/auth/admin-login')
+      .send({ username: 'root', password: 'nope' })
+      .expect(403);
+    expect(res.body.error.code).toBe('ADMIN_LOGIN_FAILED');
+  });
+
+  it('rejects missing fields', async () => {
+    const app = await initApp();
+    await api(app).post('/api/auth/admin-login').send({}).expect(400);
+  });
+});

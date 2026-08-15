@@ -53,6 +53,22 @@
   color: #211a06;
 }
 
+.auth-tab.admin-link {
+  flex: 0 0 auto;
+  padding: 10px 14px;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--sky);
+  background: transparent;
+  border: 1px solid var(--line-soft);
+  margin-right: 6px;
+}
+
+.auth-tab.admin-link:hover {
+  background: rgba(124, 196, 245, 0.12);
+}
+
 .auth-card {
   padding: 24px 20px;
 }

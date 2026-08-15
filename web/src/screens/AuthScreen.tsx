@@ -32,6 +32,9 @@ export default function AuthScreen() {
   const [verifying, setVerifying] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [adminMode, setAdminMode] = useState(false);
+  const [adminUser, setAdminUser] = useState('');
+  const [adminPass, setAdminPass] = useState('');
 
   function switchMode(m: 'login' | 'register') {
     setMode(m);
@@ -108,6 +111,24 @@ export default function AuthScreen() {
     }
   }
 
+  async function adminLogin(e: FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setVerifying(true);
+    try {
+      const res = await api.post<OtpResponse>('/auth/admin-login', {
+        username: adminUser.trim(),
+        password: adminPass,
+      });
+      login(res.token, res.user);
+      navigate('/admin', { replace: true });
+    } catch (ex) {
+      setError(ex instanceof ApiError ? ex.message : 'تعذر تسجيل الدخول');
+    } finally {
+      setVerifying(false);
+    }
+  }
+
   return (
     <div className="auth-screen">
       <div className="auth-hero">
@@ -137,9 +158,58 @@ export default function AuthScreen() {
         >
           دخول
         </button>
+        <button
+          type="button"
+          className="auth-tab admin-link"
+          onClick={() => {
+            setAdminMode(true);
+            setError(null);
+          }}
+        >
+          دخول المشرف
+        </button>
       </div>
 
-      {!otpRequested ? (
+      {adminMode ? (
+        <form className="card auth-card" onSubmit={adminLogin}>
+          <div className="otp-note">دخول إدارة المسابقة</div>
+          <div className="field">
+            <label htmlFor="adminUser">اسم المشرف</label>
+            <input
+              id="adminUser"
+              value={adminUser}
+              onChange={(e) => setAdminUser(e.target.value)}
+              placeholder="root"
+              autoComplete="username"
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="adminPass">كلمة المرور</label>
+            <input
+              id="adminPass"
+              type="password"
+              value={adminPass}
+              onChange={(e) => setAdminPass(e.target.value)}
+              placeholder="••••••••"
+              autoComplete="current-password"
+            />
+          </div>
+          {error && <div className="error-text">{error}</div>}
+          <button className="btn btn-primary btn-block" disabled={verifying}>
+            {verifying ? 'جاري الدخول…' : 'دخول'}
+          </button>
+          <button
+            type="button"
+            className="btn btn-ghost btn-block"
+            onClick={() => {
+              setAdminMode(false);
+              setError(null);
+            }}
+          >
+            إلغاء
+          </button>
+        </form>
+      ) : !otpRequested ? (
         <form className="card auth-card" onSubmit={submit}>
           {mode === 'register' && (
             <div className="field">

@@ -10,6 +10,7 @@ import { parseFullName, normalizePhone } from '../util/normalize';
 import { bulkCreateQuestions, type BulkQuestionInput } from '../modules/admin/service';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const DEFAULT_HIJRI_MONTH = 'ربيع الأول';
 
 // Resolves to the questions.json copied next to the bundle in production,
 // or to the source file in development.
@@ -21,11 +22,10 @@ function computeBaseDate(): string {
   if (config.competitionStartDate) {
     return config.competitionStartDate;
   }
-  // Rolling demo mode: make "yesterday" the day of question 1 so that
+  // Rolling demo mode: make "today" the day of question 1 so that
   // question 1 is answerable today, question 2 tomorrow, and so on.
-  const yesterday = new Date(Date.now() - 86_400_000);
-  const start = startOfDayInTz(yesterday.toISOString(), config.competitionTimezone);
-  return start.slice(0, 10);
+  const today = startOfDayInTz(new Date().toISOString(), config.competitionTimezone);
+  return today.slice(0, 10);
 }
 
 function loadQuestions(): BulkQuestionInput[] {
@@ -45,6 +45,41 @@ function loadQuestions(): BulkQuestionInput[] {
     correctAnswer: q.correctAnswer,
     answerVariants: q.answerVariants ?? [],
   }));
+}
+
+function questionsContent(): string {
+  return fs.readFileSync(questionsJsonPath(), 'utf-8');
+}
+
+/** Version fingerprint of the questions file so deploy-time sync knows when content changed. */
+function seedVersion(): string {
+  return crypto.createHash('sha256').update(questionsContent()).digest('hex').slice(0, 16);
+}
+
+function getStoredSeedVersion(): string | null {
+  const row = getDb().prepare("SELECT value FROM settings WHERE key = 'seed_version'").get() as
+    | { value: string }
+    | undefined;
+  return row?.value ?? null;
+}
+
+function setStoredSeedVersion(version: string): void {
+  getDb()
+    .prepare(
+      "INSERT INTO settings (key, value) VALUES ('seed_version', ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value",
+    )
+    .run(version);
+}
+
+function countRows(table: 'questions' | 'answers'): number {
+  return (getDb().prepare(`SELECT COUNT(*) AS c FROM ${table}`).get() as { c: number }).c;
+}
+
+function clearCompetitionData(): void {
+  const db = getDb();
+  db.prepare('DELETE FROM answers').run();
+  db.prepare('DELETE FROM question_sessions').run();
+  db.prepare('DELETE FROM questions').run();
 }
 
 function ensureAdmin(): void {
@@ -78,55 +113,124 @@ function ensureAdmin(): void {
   logger.info(`Admin user created: ${parsed.fullName} (${config.adminWhatsappNumber})`);
 }
 
-function run(): void {
-  const db = getDb();
-  const force = process.argv.includes('--force');
-
-  const existingCount = (db.prepare('SELECT COUNT(*) AS c FROM questions').get() as { c: number }).c;
-  if (existingCount > 0 && !force) {
-    logger.warn(
-      `Database already contains ${existingCount} questions. Use \`npm run seed -- --force\` to wipe and re-seed.`,
-    );
-    return;
-  }
-
-  if (existingCount > 0) {
-    db.prepare('DELETE FROM answers').run();
-    db.prepare('DELETE FROM question_sessions').run();
-    db.prepare('DELETE FROM questions').run();
-    logger.info('Cleared existing competition data.');
-  }
-
+/** Wipe everything and seed from questions.json. Only safe before any real participant answers exist. */
+function fullSeed(): void {
+  clearCompetitionData();
   const questions = loadQuestions();
   const baseDate = computeBaseDate();
   const result = bulkCreateQuestions(questions, baseDate);
-
+  setStoredSeedVersion(seedVersion());
   ensureAdmin();
-
   logger.info(`Seeded ${result.created} questions. Base date (Hijri day 1): ${baseDate}`);
-  logger.info(
-    config.competitionStartDate
-      ? 'Fixed competition date mode (COMPETITION_START_DATE).'
-      : 'Rolling demo mode: question 1 is available today.',
-  );
 }
 
 /**
- * Idempotent seeding used on server boot: seeds the 30-question calendar and
- * the admin account only when the database is empty.
+ * Non-destructive sync: adds questions from questions.json that are missing,
+ * updates the text/answer of existing ones, and preserves all participant
+ * data (answers, sessions, users). Used once the competition is live.
  */
-export function seedIfNeeded(): void {
+function syncSeed(): void {
   const db = getDb();
-  const existingCount = (db.prepare('SELECT COUNT(*) AS c FROM questions').get() as { c: number }).c;
-  if (existingCount > 0) {
+  const questions = loadQuestions();
+  const baseDate = computeBaseDate();
+  const additions: BulkQuestionInput[] = [];
+  let updated = 0;
+
+  for (const item of questions) {
+    const existing = db
+      .prepare('SELECT id FROM questions WHERE question_number = ? AND hijri_month = ?')
+      .get(item.questionNumber, DEFAULT_HIJRI_MONTH) as { id: string } | undefined;
+
+    if (existing) {
+      db.prepare(
+        'UPDATE questions SET hijri_day = ?, question_text = ?, correct_answer = ?, answer_variants = ? WHERE id = ?',
+      ).run(
+        item.hijriDay,
+        item.questionText,
+        item.correctAnswer,
+        JSON.stringify(item.answerVariants ?? []),
+        existing.id,
+      );
+      updated++;
+    } else {
+      additions.push(item);
+    }
+  }
+
+  if (additions.length > 0) {
+    const result = bulkCreateQuestions(additions, baseDate);
+    logger.info(`Synced ${result.created} new questions. Base date (Hijri day 1): ${baseDate}`);
+  } else {
+    void baseDate;
+  }
+  setStoredSeedVersion(seedVersion());
+  ensureAdmin();
+  logger.info(`Seed sync complete: ${updated} updated, ${additions.length} added.`);
+}
+
+function run(): void {
+  const force = process.argv.includes('--force');
+
+  const version = seedVersion();
+  const stored = getStoredSeedVersion();
+  const existingCount = countRows('questions');
+  const upToDate = existingCount > 0 && stored === version;
+
+  if (!force && upToDate) {
+    logger.info('Seed data is up to date. Skipping.');
     ensureAdmin();
     return;
   }
-  const questions = loadQuestions();
-  const baseDate = computeBaseDate();
-  const result = bulkCreateQuestions(questions, baseDate);
-  ensureAdmin();
-  logger.info(`Seeded ${result.created} questions. Base date (Hijri day 1): ${baseDate}`);
+
+  if (force) {
+    fullSeed();
+    logger.info('Forced re-seed completed.');
+    return;
+  }
+
+  if (existingCount === 0) {
+    fullSeed();
+    return;
+  }
+
+  // Questions exist but the file changed: only ever wipe if no real answers yet.
+  const answerCount = countRows('answers');
+  if (answerCount === 0) {
+    logger.info('Question content changed and no participant answers exist yet — performing full re-seed.');
+    fullSeed();
+  } else {
+    logger.info('Question content changed but participant answers exist — performing non-destructive sync.');
+    syncSeed();
+  }
+}
+
+/**
+ * Idempotent seeding used on server boot. Re-seeds the question calendar
+ * whenever questions.json changes (and there are no participant answers yet),
+ * otherwise syncs new/updated questions without touching participant data.
+ */
+export function seedIfNeeded(): void {
+  const version = seedVersion();
+  const stored = getStoredSeedVersion();
+  const existingCount = countRows('questions');
+
+  if (existingCount === 0) {
+    fullSeed();
+    return;
+  }
+
+  if (stored === version) {
+    ensureAdmin();
+    return;
+  }
+
+  if (countRows('answers') === 0) {
+    logger.info('Question content changed and no participant answers exist yet — performing full re-seed.');
+    fullSeed();
+  } else {
+    logger.info('Question content changed but participant answers exist — performing non-destructive sync.');
+    syncSeed();
+  }
 }
 
 // CLI entry (`npm run seed [-- --force]`). Skips when imported by the server.

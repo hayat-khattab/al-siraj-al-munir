@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api, ApiError } from '../api/client';
-import type { AdminAnswer, AdminQuestion, AdminStats, AdminUser } from '../api/types';
+import type { AdminAnswer, AdminQuestion, AdminStats, AdminUser, UserAnswerAdminRow } from '../api/types';
 import { useAuth } from '../auth/AuthContext';
 import Layout, { ScreenTitle } from '../components/Layout';
 import Modal from '../components/Modal';
@@ -310,6 +310,9 @@ function QuestionModal({
 function UsersTab({ onToast }: { onToast: (s: string) => void }) {
   const [users, setUsers] = useState<AdminUser[] | null>(null);
   const [search, setSearch] = useState('');
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [answersMap, setAnswersMap] = useState<Record<string, UserAnswerAdminRow[]>>({});
+  const [loadingAnswers, setLoadingAnswers] = useState<Record<string, boolean>>({});
 
   const load = useCallback(
     (q?: string) => {
@@ -345,6 +348,20 @@ function UsersTab({ onToast }: { onToast: (s: string) => void }) {
     });
   }
 
+  function openAnswers(u: AdminUser) {
+    setExpanded((e) => ({ ...e, [u.id]: !e[u.id] }));
+    if (!expanded[u.id] && !answersMap[u.id]) {
+      setLoadingAnswers((l) => ({ ...l, [u.id]: true }));
+      api
+        .get<{ answers: UserAnswerAdminRow[] }>(`/admin/users/${u.id}/answers`)
+        .then((r) => {
+          setAnswersMap((m) => ({ ...m, [u.id]: r.answers }));
+        })
+        .catch((e) => onToast(e instanceof ApiError ? e.message : 'خطأ'))
+        .finally(() => setLoadingAnswers((l) => ({ ...l, [u.id]: false })));
+    }
+  }
+
   return (
     <>
       <div className="admin-row">
@@ -365,6 +382,9 @@ function UsersTab({ onToast }: { onToast: (s: string) => void }) {
               </p>
             </div>
             <div className="admin-item-actions">
+              <button className="mini-btn" onClick={() => openAnswers(u)}>
+                {expanded[u.id] ? 'إخفاء' : 'الإجابات'}
+              </button>
               <button className="mini-btn toggle" onClick={() => toggleRole(u)}>
                 {u.role === 'ADMIN' ? 'إزالة إشراف' : 'إشراف'}
               </button>
@@ -375,7 +395,75 @@ function UsersTab({ onToast }: { onToast: (s: string) => void }) {
           </div>
         ))}
       </div>
+
+      {Object.keys(expanded).map(
+        (uid) =>
+          expanded[uid] && (
+            <UserAnswersPanel
+              key={uid}
+              userId={uid}
+              answers={answersMap[uid] ?? []}
+              loading={loadingAnswers[uid] ?? false}
+            />
+          ),
+      )}
     </>
+  );
+}
+
+function UserAnswersPanel({
+  userId,
+  answers,
+  loading,
+}: {
+  userId: string;
+  answers: UserAnswerAdminRow[];
+  loading: boolean;
+}) {
+  const row = (label: string, value: string | number | null) => (
+    <div className="answer-row">
+      <span className="answer-label">{label}</span>
+      <span className="answer-value">{value ?? '—'}</span>
+    </div>
+  );
+
+  return (
+    <div className="answers-panel">
+      <h3>إجابات العضو</h3>
+      {loading && <div className="spinner" />}
+      {!loading && answers.length === 0 && <p className="hint-text">لم يُجرَ جلسة ولا إجابة بعد.</p>}
+      {!loading &&
+        answers.map((a) => {
+          const ok = a.correction === 'CORRECT';
+          const answered = a.answerId !== null;
+          return (
+            <div key={a.questionNumber} className="answer-card">
+              <div className="answer-head">
+                <strong>السؤال {toAr(a.questionNumber)} — اليوم {toAr(a.hijriDay)} {a.hijriMonth}</strong>
+                {answered ? (
+                  <span className={`badge ${ok ? 'ok' : 'bad'}`}>{ok ? 'صح' : 'خطأ'}</span>
+                ) : (
+                  <span className="badge neutral">لم يُجرَب</span>
+                )}
+              </div>
+              <p className="answer-q">{a.questionText}</p>
+              {answered ? (
+                <p className="answer-user">{a.answerText}</p>
+              ) : (
+                <p className="answer-user dimmed">بدون إجابة</p>
+              )}
+              <div className="answer-grid">
+                {row('بدء الجلسة', a.startedAt ? new Date(a.startedAt).toLocaleString('ar-EG') : null)}
+                {row('نهاية/إنتهاء', a.endedAt ?? a.expiresAt ? new Date(a.endedAt ?? a.expiresAt!).toLocaleString('ar-EG') : null)}
+                {row('الإرسال', a.submittedAt ? new Date(a.submittedAt).toLocaleString('ar-EG') : null)}
+                {row('وقت الإجابة', a.timeTakenSeconds !== null ? `${toAr(a.timeTakenSeconds)} ث` : null)}
+                {row('التقييم', a.correction)}
+                {row('الإجابة الصحيحة', a.correctAnswer)}
+              </div>
+            </div>
+          );
+        })}
+    </div>
   );
 }
 

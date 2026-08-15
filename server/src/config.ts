@@ -47,6 +47,8 @@ export const config = {
 
   adminFullName: process.env.ADMIN_FULL_NAME ?? 'مدير مسابقة السراج',
   adminWhatsappNumber: process.env.ADMIN_WHATSAPP_NUMBER ?? '+201000000000',
+  adminUsername: process.env.ADMIN_USERNAME ?? 'root',
+  adminPassword: process.env.ADMIN_PASSWORD ?? 'admin2root',
 
   corsOrigins: (process.env.CORS_ORIGINS ?? '*')
     .split(',')

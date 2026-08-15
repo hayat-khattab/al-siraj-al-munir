@@ -172,4 +172,41 @@ describe('Admin dashboard', () => {
     expect(stats.correctAnswers).toBe(1);
     expect(stats.correctRate).toBe(100);
   });
+
+  it('lists a member\'s per-question answers with timing and evaluation', async () => {
+    const adminRes = await api(app)
+      .post('/api/auth/admin-login')
+      .send({ username: 'root', password: 'admin2root' })
+      .expect(200);
+    const adminToken = adminRes.body.token;
+
+    const user = await registerUser(app, 'أحمد محمد علي', '+201001234567');
+    const questions = await seedCompetition(undefined, 2);
+    await api(app)
+      .post(`/api/competition/questions/${questions[0].id}/start`)
+      .set('Authorization', `Bearer ${user.token}`)
+      .expect(201);
+    await api(app)
+      .post(`/api/competition/questions/${questions[0].id}/submit`)
+      .set('Authorization', `Bearer ${user.token}`)
+      .send({ answer: 'الإجابة الصحيحة 1' })
+      .expect(201);
+
+    const res = await api(app)
+      .get(`/api/admin/users/${user.userId}/answers`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .expect(200);
+
+    expect(res.body.answers).toHaveLength(2);
+    const q1 = res.body.answers.find((a: any) => a.questionNumber === 1);
+    expect(q1.correction).toBe('CORRECT');
+    expect(q1.startedAt).not.toBeNull();
+    expect(q1.submittedAt).not.toBeNull();
+    expect(q1.timeTakenSeconds).not.toBeNull();
+    expect(q1.correctAnswer).toBeTruthy();
+
+    const q2 = res.body.answers.find((a: any) => a.questionNumber === 2);
+    expect(q2.answerId).toBeNull();
+    expect(q2.sessionStatus).toBeNull();
+  });
 });

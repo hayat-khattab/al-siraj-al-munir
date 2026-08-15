@@ -210,6 +210,37 @@ export function verifyOtp(rawPhone: string, code: string, purpose: 'REGISTER' | 
   return { token, user: toPublicUser(user) };
 }
 
+export function adminLogin(username: string, password: string): AuthResult {
+  if (username !== config.adminUsername || password !== config.adminPassword) {
+    throw AppError.forbidden('ADMIN_LOGIN_FAILED', 'بيانات دخول المشرف غير صحيحة.');
+  }
+
+  const normalized = normalizePhone(config.adminWhatsappNumber);
+  let row = getDb()
+    .prepare('SELECT * FROM users WHERE whatsapp_normalized = ?')
+    .get(normalized) as UserRow | undefined;
+
+  if (!row) {
+    const parsed = parseFullName(config.adminFullName);
+    const id = crypto.randomUUID();
+    const now = nowIso();
+    getDb()
+      .prepare(
+        `INSERT INTO users (id, full_name, first_name, middle_name, last_name, whatsapp_number, whatsapp_normalized, role, status, created_at, last_login_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, 'ADMIN', 'ACTIVE', ?, NULL)`,
+      )
+      .run(id, parsed.fullName, parsed.first, parsed.middle, parsed.last, config.adminWhatsappNumber, normalized, now);
+    row = getDb().prepare('SELECT * FROM users WHERE id = ?').get(id) as UserRow;
+    audit('ADMIN_USER_CREATED', id);
+  } else if (row.role !== 'ADMIN' || row.status !== 'ACTIVE') {
+    getDb().prepare("UPDATE users SET role = 'ADMIN', status = 'ACTIVE' WHERE id = ?").run(row.id);
+    audit('ADMIN_USER_PROMOTED', row.id);
+    row = getDb().prepare('SELECT * FROM users WHERE id = ?').get(row.id) as UserRow;
+  }
+
+  return completeLogin(row);
+}
+
 export function getUserById(id: string): PublicUser | null {
   const row = getDb().prepare('SELECT * FROM users WHERE id = ?').get(id) as UserRow | undefined;
   return row ? toPublicUser(row) : null;

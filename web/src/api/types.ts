@@ -123,3 +123,21 @@ export interface AdminStats {
   availableQuestions: number;
   correctRate: number;
 }
+
+export interface UserAnswerAdminRow {
+  questionNumber: number;
+  hijriDay: number;
+  hijriMonth: string;
+  questionText: string;
+  correctAnswer: string;
+  answerId: string | null;
+  answerText: string | null;
+  submittedAt: string | null;
+  startedAt: string | null;
+  expiresAt: string | null;
+  endedAt: string | null;
+  timeTakenSeconds: number | null;
+  score: number | null;
+  correction: 'CORRECT' | 'INCORRECT' | null;
+  sessionStatus: 'ACTIVE' | 'SUBMITTED' | 'EXPIRED' | null;
+}

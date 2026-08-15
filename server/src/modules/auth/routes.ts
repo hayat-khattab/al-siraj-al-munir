@@ -35,4 +35,13 @@ router.post('/verify', (req: Request, res: Response) => {
   res.json(result);
 });
 
+router.post('/admin-login', (req: Request, res: Response) => {
+  const schema = z.object({
+    username: z.string().min(1).max(60),
+    password: z.string().min(1).max(200),
+  });
+  const { username, password } = schema.parse(req.body);
+  res.json(authService.adminLogin(username, password));
+});
+
 export default router;
