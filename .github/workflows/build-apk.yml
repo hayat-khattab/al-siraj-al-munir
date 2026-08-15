@@ -18,15 +18,15 @@ jobs:
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
           cache-dependency-path: web/package-lock.json
 
-      - name: Set up JDK 17
+      - name: Set up JDK 21
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: '17'
+          java-version: '21'
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
@@ -59,7 +59,9 @@ jobs:
         working-directory: web
 
       - name: Build debug APK
-        run: ./gradlew --no-daemon assembleDebug
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon assembleDebug
         working-directory: web/android
 
       - name: Upload APK
@@ -80,8 +82,7 @@ jobs:
         with:
           tag: v${{ steps.ver.outputs.V }}
           name: Al-Siraj Al-Munir v${{ steps.ver.outputs.V }}
-          body: |
-            تطبيق السِّراج المُنِير — نسخة رسمية قابلة للتثبيت على أجهزة أندرويد.
+          body: Al-Siraj Al-Munir competition app - official Android release v${{ steps.ver.outputs.V }}
           artifacts: Al-Siraj-Al-Munir.apk
           artifactContentType: application/vnd.android.package-archive
           skipIfReleaseExists: true
